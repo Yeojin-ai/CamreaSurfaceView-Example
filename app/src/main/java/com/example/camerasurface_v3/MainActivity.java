@@ -208,16 +208,4 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             mSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(newWidth,newHeight));
         }
     }
-
-
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
 }
