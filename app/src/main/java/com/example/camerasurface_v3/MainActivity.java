@@ -134,14 +134,14 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
             if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
                     != PackageManager.PERMISSION_GRANTED) return;
-            mCameraManager.openCamera(CamID,mStateCallback, mHandler);
+            mCameraManager.openCamera(CamID,deviceStateCallback, mHandler);
 
         } catch (CameraAccessException e) {
             Toast.makeText(this,"couldn't open camera",Toast.LENGTH_SHORT).show();
             throw new RuntimeException(e);
         }
     }
-    private CameraDevice.StateCallback mStateCallback= new CameraDevice.StateCallback() {
+    private CameraDevice.StateCallback deviceStateCallback= new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
             mCameraDevice = camera;
