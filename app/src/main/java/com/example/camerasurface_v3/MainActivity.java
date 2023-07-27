@@ -25,6 +25,7 @@ import android.util.SparseArray;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
@@ -54,6 +55,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
 
 
+
+
     private static final SparseArray ORIENTATIONS = new SparseArray();
     static {
         ORIENTATIONS.append(ExifInterface.ORIENTATION_NORMAL, 0);
@@ -74,6 +77,9 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Toast.makeText(this,"onCreate",Toast.LENGTH_SHORT).show();
         Log.d(TAG,"iris onCreate2");
 
+        Button capture = findViewById(R.id.captureButton);
+        capture.setAlpha(0.9f);
+
         initSurfaceView();
     }
 
@@ -81,14 +87,16 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
     private void initSurfaceView(){
         Log.d(TAG,"iris initSurfaceView");
-
+/*
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         mWidth=displayMetrics.widthPixels;
         mHeight=displayMetrics.heightPixels;
 
+ */
 
         mSurfaceHolder = mSurfaceView.getHolder();
+
         mSurfaceHolder.addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(@NonNull SurfaceHolder holder) {
@@ -124,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             CameraCharacteristics characteristics = mCameraManager.getCameraCharacteristics(CamID);
             StreamConfigurationMap scm = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             Size mPreviewSize = scm.getOutputSizes(ImageFormat.JPEG)[0];
-            setAspectRatioView(mPreviewSize.getHeight(),mPreviewSize.getWidth());
+            //setAspectRatioView(mPreviewSize.getHeight(),mPreviewSize.getWidth());
 
             mImageReader = ImageReader.newInstance(
                     mPreviewSize.getWidth(),

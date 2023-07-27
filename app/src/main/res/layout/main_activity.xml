@@ -7,5 +7,10 @@
         android:id="@+id/surfaceview"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
+    <Button
+        android:id="@+id/captureButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:backgroundTint="@color/purple_700"/>
 </FrameLayout>
