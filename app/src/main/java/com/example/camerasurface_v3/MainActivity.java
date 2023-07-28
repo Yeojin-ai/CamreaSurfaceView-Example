@@ -14,6 +14,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ExifInterface;
 import android.media.ImageReader;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -52,6 +53,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private int mWidth = 0;
     private int mHeight = 0;
 
+    private MediaRecorder mMediaRecorder;
+
 
 
 
@@ -73,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         Log.d(TAG,"iris___onCreate() start");
 
         setContentView(R.layout.main_activity);
-        mSurfaceView = findViewById(R.id.surfaceview);
+        mSurfaceView = findViewById(R.id.surfaceView);
         Toast.makeText(this,"onCreate",Toast.LENGTH_SHORT).show();
         Log.d(TAG,"iris onCreate2");
 

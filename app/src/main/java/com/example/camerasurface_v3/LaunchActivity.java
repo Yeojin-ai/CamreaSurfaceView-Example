@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +16,8 @@ import androidx.core.content.ContextCompat;
 
 import com.example.camerasurface_v3.MainActivity;
 import com.example.camerasurface_v3.R;
+
+import java.util.Locale;
 
 public class LaunchActivity extends AppCompatActivity {
     @Override
@@ -36,7 +39,11 @@ public class LaunchActivity extends AppCompatActivity {
 
     //--permission--//
     static final int PERMISSIONS_REQUEST_CODE =1000;
-    String[] PERMISSIONS = {Manifest.permission.CAMERA};
+    String[] PERMISSIONS = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.READ_MEDIA_AUDIO,
+            Manifest.permission.READ_MEDIA_VIDEO,
+            Manifest.permission.READ_MEDIA_IMAGES};
 
     private boolean hasPermissions(String[] permissions){
         int result;
@@ -51,7 +58,7 @@ public class LaunchActivity extends AppCompatActivity {
         }
         return true;
     }
-    public void onRequestPermisisonsResult(int requestCode, @NonNull String[] permissions,
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults){
         super.onRequestPermissionsResult(requestCode,permissions,grantResults);
 
@@ -62,8 +69,10 @@ public class LaunchActivity extends AppCompatActivity {
                             == PackageManager.PERMISSION_GRANTED;
                     boolean diskPermissionAccepted = grantResults[1]
                             == PackageManager.PERMISSION_GRANTED;
+                    boolean disk2PermissionAccepted = grantResults[2]
+                            == PackageManager.PERMISSION_GRANTED;
 
-                    if(!cameraPermissionAccepted || !diskPermissionAccepted)
+                    if(!cameraPermissionAccepted || !diskPermissionAccepted || !disk2PermissionAccepted)
                         showDialogForPermission("using CameraApp need permission.");
                     else {
                         Intent mainIntent = new Intent(LaunchActivity.this, MainActivity.class);
@@ -81,18 +90,8 @@ public class LaunchActivity extends AppCompatActivity {
         builder.setTitle("Alert");
         builder.setMessage(s);
         builder.setCancelable(false);
-        builder.setPositiveButton("yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                requestPermissions(PERMISSIONS, PERMISSIONS_REQUEST_CODE);
-            }
-        });
-        builder.setNegativeButton("no", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                finish();
-            }
-        });
+        builder.setPositiveButton("yes", (dialog, which) -> requestPermissions(PERMISSIONS, PERMISSIONS_REQUEST_CODE));
+        builder.setNegativeButton("no", (dialog, which) -> finish());
         builder.create().show();
     }
 }
