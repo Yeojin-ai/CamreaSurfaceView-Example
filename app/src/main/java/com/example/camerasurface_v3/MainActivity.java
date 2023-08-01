@@ -70,13 +70,15 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     private ImageReader mImageReader;
     private File file;
 
+    //Handler and Thread
     private Handler mHandler;
     HandlerThread handlerThread;
     Handler mainHandler ;
+    
     private int mWidth = 0;
     private int mHeight = 0;
 
-    private MediaRecorder mMediaRecorder;
+    private Button buttonCapture;
 
     private static final SparseArray ORIENTATIONS = new SparseArray();
     static {
@@ -89,20 +91,20 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG,"iris___onCreate() start");
+        Log.d(TAG,"iris onCreate");
         Toast.makeText(this,"onCreate",Toast.LENGTH_SHORT).show();
 
         setContentView(R.layout.main_activity);
         mSurfaceView = findViewById(R.id.surfaceView);
-
+        buttonCapture = findViewById(R.id.captureButton);
     }
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG,"iris onResume");
-        Toast.makeText(this,"onResume",Toast.LENGTH_SHORT).show();
+
         startBackgroundThread();
-        Button buttonCapture = findViewById(R.id.captureButton);
+
         buttonCapture.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             @Override
             public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
                 Log.d(TAG,"iris surfaceChanged");
-                initCamAndPrev();
+                openCamera();
             }
 
             @Override
@@ -153,30 +155,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
                 mCameraDevice.close();
             }
         });
-    }
-
-    private void startBackgroundThread(){
-        handlerThread = new HandlerThread("Camera2");
-        handlerThread.start();
-        mHandler = new Handler(handlerThread.getLooper());
-        mainHandler= new Handler(getMainLooper());
-    }
-    private void stopBackgroundThread(){
-        handlerThread.quitSafely();
-        try {
-            handlerThread.join();
-            handlerThread=null;
-            mHandler=null;
-            mainHandler=null;
-        }catch (InterruptedException e){
-            e.printStackTrace();
-        }
-    }
-
-    public void initCamAndPrev(){
-        Log.d(TAG,"iris initCamAndPrev");
-
-        openCamera();
     }
 
     private void openCamera() {
@@ -192,7 +170,8 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             mCameraManager.openCamera(CamID,deviceStateCallback, mHandler);
 
             //setAspectRatioView(mPreviewSize.getHeight(),mPreviewSize.getWidth());
-
+            
+            //set to save image
             mImageReader = ImageReader.newInstance(
                     mPreviewSize.getWidth(),
                     mPreviewSize.getHeight(),
@@ -225,10 +204,13 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         @Override
         public void onError(@NonNull CameraDevice camera, int error) {
             Toast.makeText(null,"couldn't open camera",Toast.LENGTH_SHORT).show();
+            mCameraDevice.close();
+            mCameraDevice=null;
 
         }
     };
     public void takePreview() throws CameraAccessException {
+        Log.d(TAG,"iris takePreview");
         Surface previewSurface = mSurfaceHolder.getSurface();
         Surface imageSurface = mImageReader.getSurface();
 
@@ -237,45 +219,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         mCameraDevice.createCaptureSession(Arrays.asList(previewSurface,imageSurface),mSessionPreviewStateCallback, mHandler);
     }
 
-    private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            Log.d(TAG,"iris onImageAvailable");
-
-            Image image = null;
-            image=reader.acquireLatestImage();  //[CHECK] reader.acquireLastImage()
-            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-            byte[] bytes = new byte[buffer.capacity()];
-            buffer.get(bytes);
-            try {
-                save(bytes);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }finally {
-                if(image!=null){
-                    image.close();
-                }
-            }
-        }
-    };
-    private void save(byte[] bytes) throws IOException{
-        Log.d(TAG,"iris save");
-        OutputStream outputStream=null;
-        try{
-            Log.d(TAG,"iris save-try");
-            outputStream=new FileOutputStream(file);
-            Log.d(TAG,"iris save-try2");
-            outputStream.write(bytes);
-            Log.d(TAG,"iris save-try3");
-            Toast.makeText(this,"274: saved image",Toast.LENGTH_SHORT).show();
-        }finally {
-            if (null != outputStream){
-                outputStream.close();
-            }
-        }
-    }
+    
     private void takePicture() throws CameraAccessException{
         Log.d(TAG,"iris takePicture");
 
@@ -286,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
 
             Long timeStampLong= System.currentTimeMillis()/1000;
             String ts=timeStampLong.toString();
-            file = new File("/storage/self/primary/Pictures/irisPic"+"/"+ts+".jpg");
+            file = new File("sdcard/DCIM/irisPic"+"/"+"surface"+ts+".jpg");
 
             // Use the same AE and AF modes as the preview.
             cCaptReqBuilder.set(CaptureRequest.CONTROL_AF_MODE,CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
@@ -338,6 +282,62 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
         }
     };
 
+    private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Log.d(TAG,"iris onImageAvailable");
+
+            Image image = null;
+            image=reader.acquireLatestImage();  //[CHECK] reader.acquireLastImage()
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.capacity()];
+            buffer.get(bytes);
+            try {
+                save(bytes);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }finally {
+                if(image!=null){
+                    image.close();
+                }
+            }
+        }
+    };
+    private void save(byte[] bytes) throws IOException{
+        Log.d(TAG,"iris save");
+        OutputStream outputStream=null;
+        try{
+            Log.d(TAG,"iris save-try");
+            outputStream=new FileOutputStream(file);
+            outputStream.write(bytes);
+            Toast.makeText(this,"saved image",Toast.LENGTH_SHORT).show();
+        }finally {
+            if (null != outputStream){
+                outputStream.close();
+            }
+        }
+    }
+
+    private void startBackgroundThread(){
+        handlerThread = new HandlerThread("Camera2");
+        handlerThread.start();
+        mHandler = new Handler(handlerThread.getLooper());
+        mainHandler= new Handler(getMainLooper());
+    }
+    private void stopBackgroundThread(){
+        handlerThread.quitSafely();
+        try {
+            handlerThread.join();
+            handlerThread=null;
+            mHandler=null;
+            mainHandler=null;
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+    }
+
     private void setAspectRatioView(int width, int height){
         if(width>height){
             int newWidth = mWidth;
@@ -352,10 +352,6 @@ public class MainActivity extends AppCompatActivity implements ActivityCompat.On
             mSurfaceView.setLayoutParams(new FrameLayout.LayoutParams(newWidth,newHeight));
         }
     }
-
-
-
-
 
     private class SaveImageTask extends AsyncTask<Bitmap,Void,Void> {
         @Override
